@@ -1,0 +1,74 @@
+pipeline{
+
+agent any
+
+triggers{
+pollSCM('* * * * *')
+}
+
+options{
+timestamps()
+buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5'))
+}
+
+tools{
+maven "maven3.8.5"
+}
+
+stages{
+    
+stage('CheckoutCode'){
+
+steps{
+    git branch: 'development', credentialsId: 'e1b7d1e1-e590-40ad-8b06-57ff8cd55d1c', url: 'https://github.com/nsktechnologies/maven-web-application.git'
+}
+}
+
+stage('Build'){
+steps{
+sh "mvn clean package"
+}
+}
+
+stage('ExecuteSonarQubeReport'){
+steps{
+sh "mvn clean sonar:sonar"
+}
+}
+
+stage('UploadArtifactIntoNexus'){
+steps{
+sh "mvn clean deploy"
+}
+}
+
+stage('DeployAppIntoTomcatServer'){
+steps{
+sshagent(['02cc2258-1ce8-4cb9-8df6-83770d0b3d2d']) {
+sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@107.21.78.46:/opt/apache-tomcat-9.0.63/webapps"
+}
+}
+}
+
+    
+}
+
+post{
+
+success{
+emailext body: '''Build is Over - success!!
+
+Regards,
+nsktechnologies
+''', subject: 'Build is Over - success!!', to: 'sarathmca15@gmail.com'
+}
+
+failure{
+emailext body: '''Build is Over - failed!!
+
+Regards,
+nsktechnologies
+''', subject: 'Build is Over - failed!!', to: 'sarathmca15@gmail.com'
+}
+}
+}
