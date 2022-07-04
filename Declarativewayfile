@@ -15,7 +15,7 @@ buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', 
 }
 
 tools{
-maven "maven3.6.3"
+maven "maven3.8.5"
 }
 
 stages{
