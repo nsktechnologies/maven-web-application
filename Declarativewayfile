@@ -1,7 +1,7 @@
 pipeline{
 
 //agent any
-agent{
+agent {
 label 'node1'
 }
 
